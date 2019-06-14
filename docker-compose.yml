@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+
+   mariadb10.3:
+     image: mariadb:10.3
+     container_name: mariadb10.3
+     volumes:
+       - ./.log:/var/log
+       - ./.db:/var/lib/mysql
+     environment:
+       - MYSQL_ROOT_PASSWORD=you_secret_password
+
+   php-fpm7.2:
+     build:
+       context: .
+       dockerfile: php-fpm.Dockerfile
+     container_name: php-fpm7.2
+     volumes:
+       - ./.log:/var/log
+       - ./.app:/var/www/html
+     links:
+       - mariadb10.3:mariadb10.3
+     depends_on:
+       - mariadb10.3
+
+   nginx:
+     build:
+       context: .
+       dockerfile: nginx.Dockerfile
+     container_name: nginx
+     volumes:
+       - ./.log:/var/log
+       - ./.app:/var/www/html
+     links:
+       - php-fpm7.2:php-fpm7.2
+     ports:
+       - 80:80
+     depends_on:
+       - php-fpm7.2
